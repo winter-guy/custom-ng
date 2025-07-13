@@ -173,4 +173,14 @@ export class SelectTypeaheadComponent
       behavior: 'auto'
     });
   }
+
+  clearSelection(): void {
+  this.formControl.setValue('');
+  this.filteredOptions = [];
+  this.highlightedIndex = -1;
+  this.onChange('');
+  this.onTouched();
+  this.showDropdown = false;
+  this.cdr.markForCheck();
+}
 }

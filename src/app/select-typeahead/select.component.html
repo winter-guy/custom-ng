@@ -1,14 +1,37 @@
-<div class="typeahead-container">
-    <div class="input-wrapper">
-        <input #inputRef class="typeahead-input" [formControl]="formControl" (focus)="onFocus()"
-            (keydown)="onKeydown($event)" (mousedown)="onInputMouseDown()" autocomplete="off" />
+<div class="typeahead-container" [class.disabled]="disabled">
+  <div class="input-wrapper">
+    <input
+      #inputRef
+      class="typeahead-input"
+      [formControl]="formControl"
+      [disabled]="disabled"
+      (focus)="onFocus()"
+      (keydown)="onKeydown($event)"
+      (mousedown)="onInputMouseDown()"
+      autocomplete="off"
+    />
 
+    <!-- 🔘 Cancel button -->
+    <button
+      *ngIf="formControl.value"
+      type="button"
+      class="clear-button"
+      (click)="clearSelection()"
+      aria-label="Clear selection"
+    >
+      &times;
+    </button>
 
-        <ul class="dropdown" *ngIf="showDropdown && filteredOptions.length">
-            <li *ngFor="let option of filteredOptions; let i = index" [class.active]="i === highlightedIndex"
-                (mousedown)="selectOption(option)" #optionRef>
-                {{ option }}
-            </li>
-        </ul>
-    </div>
+    <!-- ⬇️ Dropdown -->
+    <ul class="dropdown" *ngIf="showDropdown && filteredOptions.length">
+      <li
+        *ngFor="let option of filteredOptions; let i = index"
+        [class.active]="i === highlightedIndex"
+        (mousedown)="selectOption(option)"
+        #optionRef
+      >
+        {{ option }}
+      </li>
+    </ul>
+  </div>
 </div>

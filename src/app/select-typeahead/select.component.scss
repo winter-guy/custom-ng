@@ -13,9 +13,30 @@ $typeahead-radius: 6px;
   }
 
   .input-wrapper {
-    position: relative;
-    width: 100%;
+  position: relative;
+
+  .clear-button {
+    position: absolute;
+    top: 50%;
+    right: 0.75rem;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    font-size: 1.25rem;
+    line-height: 1;
+    color: #888;
+    cursor: pointer;
+
+    &:hover {
+      color: #333;
+    }
+
+    &:focus {
+      outline: none;
+    }
   }
+}
+
 
   .typeahead-input {
     display: block;
