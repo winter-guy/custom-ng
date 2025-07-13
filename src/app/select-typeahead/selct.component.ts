@@ -50,6 +50,7 @@ export class SelectTypeaheadComponent<T = any>
     @Input() compareWith: (a: T | null, b: T | null) => boolean = (a, b) =>
         JSON.stringify(a) === JSON.stringify(b);
     @Input() autoSelectOnPartialMatch: boolean = false;
+    @Input() suggestFirstMatch: boolean = false;
 
     @Output() valueChange = new EventEmitter<T | null>();
     @Output() autoMatched = new EventEmitter<'exact' | 'fuzzy' | null>();
@@ -94,10 +95,22 @@ export class SelectTypeaheadComponent<T = any>
             this.filterOptions(value || '');
             this.highlightedIndex = -1;
 
-            const matched = this.options.find(opt => opt.label === value);
-            if (!matched) {
+            const exactMatch = this.options.find(opt =>
+                opt.label.toLowerCase() === (value || '').toLowerCase()
+            );
+
+            if (!exactMatch) {
                 this.onChange(null);
                 this.valueChange.emit(null);
+            }
+
+            // ✅ Suggest the first match only if enabled
+            if (this.suggestFirstMatch && this.filteredOptions.length === 1) {
+                const first = this.filteredOptions[0];
+                const typedValue = (value || '').toLowerCase();
+                if (first.label.toLowerCase().startsWith(typedValue)) {
+                    this.formControl.setValue(first.label, { emitEvent: false });
+                }
             }
 
             this.cdr.markForCheck();
