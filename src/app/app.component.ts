@@ -1,7 +1,10 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { SelectTypeaheadComponent } from './select-typeahead/selct.component';
-
+import { SelectOption, SelectTypeaheadComponent } from './select-typeahead/selct.component';
+interface User {
+  id: number;
+  fullName: string;
+}
 @Component({
   selector: 'app-root',
   imports: [ReactiveFormsModule, SelectTypeaheadComponent],
@@ -13,10 +16,22 @@ export class AppComponent implements OnInit {
 
   fb = inject(FormBuilder);
   form!: FormGroup;
+
+  options: SelectOption<User>[] = [
+    { label: 'Alice Johnson', value: { id: 1, fullName: 'Alice Johnson' } },
+    { label: 'Bob Smith', value: { id: 2, fullName: 'Bob Smith' } },
+    { label: 'Charlie Brown', value: { id: 3, fullName: 'Charlie Brown' } }
+  ];
+
+
   ngOnInit(): void {
 
     this.form = this.fb.group({
       fruit: ['']
     });
+  }
+
+  onFruitChange(selectedValue: any) {
+    console.log('Selected fruit:', selectedValue);
   }
 }

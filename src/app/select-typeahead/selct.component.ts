@@ -10,7 +10,9 @@ import {
   ChangeDetectorRef,
   forwardRef,
   HostListener,
-  AfterViewChecked
+  AfterViewChecked,
+  EventEmitter,
+  Output
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -19,6 +21,11 @@ import {
   ReactiveFormsModule
 } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+
+export interface SelectOption<T = any> {
+  label: string;
+  value: T;
+}
 
 @Component({
   standalone: true,
@@ -35,25 +42,27 @@ import { CommonModule } from '@angular/common';
     }
   ]
 })
-export class SelectTypeaheadComponent
+export class SelectTypeaheadComponent<T = any>
   implements OnInit, ControlValueAccessor, AfterViewChecked
 {
-  @Input() options: string[] = [];
+  @Input() options: SelectOption<T>[] = [];
 
   @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
   @ViewChildren('optionRef') optionRefs!: QueryList<ElementRef>;
+  @Output() valueChange = new EventEmitter<T | null>();
 
   formControl = new FormControl<string>('');
-  filteredOptions: string[] = [];
+  filteredOptions: SelectOption<T>[] = [];
 
   showDropdown = false;
   highlightedIndex = -1;
   disabled = false;
 
-  private onChange = (_: any) => {};
+  private onChange = (_: T | null) => {};
   private onTouched = () => {};
   private previousHighlightedIndex = -1;
   private clickedInside = false;
+  private selectedOption: SelectOption<T> | null = null;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
@@ -63,14 +72,16 @@ export class SelectTypeaheadComponent
         this.showDropdown = true;
       }
       this.filterOptions(value || '');
-      this.onChange(value);
       this.highlightedIndex = -1;
+      this.onChange(null);
       this.cdr.markForCheck();
     });
   }
 
-  writeValue(value: string): void {
-    this.formControl.setValue(value, { emitEvent: false });
+  writeValue(value: T | null): void {
+    const match = this.options.find(opt => opt.value === value) || null;
+    this.selectedOption = match;
+    this.formControl.setValue(match?.label || '', { emitEvent: false });
   }
 
   registerOnChange(fn: any): void {
@@ -89,18 +100,35 @@ export class SelectTypeaheadComponent
   filterOptions(query: string): void {
     const val = query.toLowerCase();
     this.filteredOptions = this.options.filter(opt =>
-      opt.toLowerCase().includes(val)
+      opt.label.toLowerCase().includes(val)
     );
-    this.cdr.markForCheck();
   }
 
-  selectOption(option: string): void {
-    this.formControl.setValue(option);
-    this.showDropdown = false;
-    this.highlightedIndex = -1;
-    this.onTouched();
-    this.cdr.markForCheck();
-  }
+  selectOption(option: SelectOption<T>): void {
+  this.selectedOption = option;
+  this.formControl.setValue(option.label);
+  this.showDropdown = false;
+  this.highlightedIndex = -1;
+
+  this.onChange(option.value);
+  this.valueChange.emit(option.value); // ✅ emit value here
+  this.onTouched();
+  this.cdr.markForCheck();
+}
+
+
+  clearSelection(): void {
+  this.formControl.setValue('');
+  this.selectedOption = null;
+  this.filteredOptions = [];
+  this.highlightedIndex = -1;
+  this.onChange(null);
+  this.valueChange.emit(null); // ✅ emit null when cleared
+  this.onTouched();
+  this.showDropdown = false;
+  this.cdr.markForCheck();
+}
+
 
   onFocus(): void {
     this.showDropdown = true;
@@ -123,9 +151,7 @@ export class SelectTypeaheadComponent
   }
 
   onKeydown(event: KeyboardEvent): void {
-    if (!this.showDropdown || this.filteredOptions.length === 0) return;
-
-    const lastIndex = this.filteredOptions.length - 1;
+    if (!this.showDropdown || !this.filteredOptions.length) return;
 
     const keyMap: Record<string, () => void> = {
       ArrowDown: () => {
@@ -173,14 +199,4 @@ export class SelectTypeaheadComponent
       behavior: 'auto'
     });
   }
-
-  clearSelection(): void {
-  this.formControl.setValue('');
-  this.filteredOptions = [];
-  this.highlightedIndex = -1;
-  this.onChange('');
-  this.onTouched();
-  this.showDropdown = false;
-  this.cdr.markForCheck();
-}
 }
