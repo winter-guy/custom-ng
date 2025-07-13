@@ -42,8 +42,7 @@ export interface SelectOption<T = any> {
         }
     ]
 })
-export class SelectTypeaheadComponent<T = any>
-    implements OnInit, ControlValueAccessor, AfterViewChecked {
+export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAccessor, AfterViewChecked {
     @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
     @ViewChildren('optionRef') optionRefs!: QueryList<ElementRef>;
 
@@ -51,9 +50,6 @@ export class SelectTypeaheadComponent<T = any>
         JSON.stringify(a) === JSON.stringify(b);
     @Input() autoSelectOnPartialMatch: boolean = false;
     @Input() suggestFirstMatch: boolean = false;
-
-    @Output() valueChange = new EventEmitter<T | null>();
-    @Output() autoMatched = new EventEmitter<'exact' | 'fuzzy' | null>();
 
     private _options: SelectOption<T>[] = [];
     @Input()
@@ -68,6 +64,9 @@ export class SelectTypeaheadComponent<T = any>
     get options(): SelectOption<T>[] {
         return this._options;
     }
+
+    @Output() valueChange = new EventEmitter<T | null>();
+    @Output() autoMatched = new EventEmitter<'exact' | 'fuzzy' | null>();
 
     formControl = new FormControl<string>('');
     filteredOptions: SelectOption<T>[] = [];
