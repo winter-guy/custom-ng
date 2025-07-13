@@ -6,13 +6,13 @@ import {
   ViewChildren,
   QueryList,
   Input,
+  Output,
+  EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
   forwardRef,
   HostListener,
-  AfterViewChecked,
-  EventEmitter,
-  Output
+  AfterViewChecked
 } from '@angular/core';
 import {
   ControlValueAccessor,
@@ -45,11 +45,26 @@ export interface SelectOption<T = any> {
 export class SelectTypeaheadComponent<T = any>
   implements OnInit, ControlValueAccessor, AfterViewChecked
 {
-  @Input() options: SelectOption<T>[] = [];
-
   @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
   @ViewChildren('optionRef') optionRefs!: QueryList<ElementRef>;
+
   @Output() valueChange = new EventEmitter<T | null>();
+
+  private _options: SelectOption<T>[] = [];
+
+  @Input() compareWith: (a: T | null, b: T | null) => boolean = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+  @Input()
+  set options(value: SelectOption<T>[]) {
+    this._options = value || [];
+    this.optionsInitialized = true;
+    if (this.initialValue !== null) {
+      this.setValueFromOptions(this.initialValue);
+    }
+    this.filterOptions(this.formControl.value || '');
+  }
+  get options(): SelectOption<T>[] {
+    return this._options;
+  }
 
   formControl = new FormControl<string>('');
   filteredOptions: SelectOption<T>[] = [];
@@ -61,28 +76,57 @@ export class SelectTypeaheadComponent<T = any>
   private onChange = (_: T | null) => {};
   private onTouched = () => {};
   private previousHighlightedIndex = -1;
-  private clickedInside = false;
   private selectedOption: SelectOption<T> | null = null;
+  private initialValue: T | null = null;
+  private optionsInitialized = false;
+  private clickedInside = false;
 
   constructor(private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
-    this.formControl.valueChanges.subscribe(value => {
-      if (this.inputRef?.nativeElement === document.activeElement) {
-        this.showDropdown = true;
-      }
-      this.filterOptions(value || '');
-      this.highlightedIndex = -1;
+  this.formControl.valueChanges.subscribe(value => {
+    if (this.inputRef?.nativeElement === document.activeElement) {
+      this.showDropdown = true;
+    }
+
+    this.filterOptions(value || '');
+    this.highlightedIndex = -1;
+
+    // Emit null only if it doesn't match any option
+    const matchedOption = this.options.find(opt => opt.label === value);
+    if (!matchedOption) {
       this.onChange(null);
-      this.cdr.markForCheck();
-    });
-  }
+      this.valueChange.emit(null);
+    }
+
+    this.cdr.markForCheck();
+  });
+}
+
 
   writeValue(value: T | null): void {
-    const match = this.options.find(opt => opt.value === value) || null;
-    this.selectedOption = match;
-    this.formControl.setValue(match?.label || '', { emitEvent: false });
+    this.initialValue = value;
+    if (this.optionsInitialized) {
+      this.setValueFromOptions(value);
+    }
   }
+
+  private setValueFromOptions(value: T | null): void {
+  const match = this.options.find(opt => this.compareWith(opt.value, value)) || null;
+  this.selectedOption = match;
+  this.formControl.setValue(match?.label || '', { emitEvent: false });
+
+  if (match) {
+    this.onChange(match.value);
+    this.valueChange.emit(match.value);
+  } else {
+    this.onChange(null);
+    this.valueChange.emit(null);
+  }
+
+  this.cdr.markForCheck();
+}
+
 
   registerOnChange(fn: any): void {
     this.onChange = fn;
@@ -102,33 +146,33 @@ export class SelectTypeaheadComponent<T = any>
     this.filteredOptions = this.options.filter(opt =>
       opt.label.toLowerCase().includes(val)
     );
+    this.cdr.markForCheck();
   }
 
   selectOption(option: SelectOption<T>): void {
-  this.selectedOption = option;
-  this.formControl.setValue(option.label);
-  this.showDropdown = false;
-  this.highlightedIndex = -1;
+    this.selectedOption = option;
+    this.formControl.setValue(option.label);
+    this.showDropdown = false;
+    this.highlightedIndex = -1;
 
-  this.onChange(option.value);
-  this.valueChange.emit(option.value); // ✅ emit value here
-  this.onTouched();
-  this.cdr.markForCheck();
-}
-
+    this.onChange(option.value);
+    this.valueChange.emit(option.value);
+    this.onTouched();
+    this.cdr.markForCheck();
+  }
 
   clearSelection(): void {
-  this.formControl.setValue('');
-  this.selectedOption = null;
-  this.filteredOptions = [];
-  this.highlightedIndex = -1;
-  this.onChange(null);
-  this.valueChange.emit(null); // ✅ emit null when cleared
-  this.onTouched();
-  this.showDropdown = false;
-  this.cdr.markForCheck();
-}
+    this.formControl.setValue('');
+    this.selectedOption = null;
+    this.filteredOptions = [];
+    this.highlightedIndex = -1;
 
+    this.onChange(null);
+    this.valueChange.emit(null);
+    this.onTouched();
+    this.showDropdown = false;
+    this.cdr.markForCheck();
+  }
 
   onFocus(): void {
     this.showDropdown = true;
@@ -141,8 +185,7 @@ export class SelectTypeaheadComponent<T = any>
 
   @HostListener('document:mousedown', ['$event.target'])
   onDocumentClick(target: HTMLElement): void {
-    const isInside = this.inputRef?.nativeElement.contains(target);
-    if (!isInside && !this.clickedInside) {
+    if (!this.inputRef?.nativeElement.contains(target)) {
       this.showDropdown = false;
       this.highlightedIndex = -1;
       this.cdr.markForCheck();

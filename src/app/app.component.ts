@@ -16,6 +16,8 @@ export class AppComponent implements OnInit {
 
   fb = inject(FormBuilder);
   form!: FormGroup;
+ compareUser = (a: User | null, b: User | null): boolean =>
+  !!a && !!b && a.id === b.id;
 
   options: SelectOption<User>[] = [
     { label: 'Alice Johnson', value: { id: 1, fullName: 'Alice Johnson' } },
@@ -27,7 +29,7 @@ export class AppComponent implements OnInit {
   ngOnInit(): void {
 
     this.form = this.fb.group({
-      fruit: ['']
+      fruit: [{ id: 1, fullName: 'Alice Johnson' }]
     });
   }
 
