@@ -1,0 +1,14 @@
+<div class="typeahead-container" [class.disabled]="disabled">
+    <div class="input-wrapper">
+        <input #inputRef type="text" class="typeahead-input" [formControl]="formControl" (focus)="onFocus()"
+        (blur)="onBlur()" (keydown)="onKeydown($event)" [attr.disabled]="disabled ? true : null" autocomplete="off"
+        placeholder="Search..." />
+
+    <ul class="dropdown" *ngIf="showDropdown && filteredOptions.length">
+        <li *ngFor="let option of filteredOptions; let i = index" #optionRef [class.active]="i === highlightedIndex"
+            (mousedown)="selectOption(option)">
+            {{ option }}
+        </li>
+    </ul>
+    </div>
+</div>
