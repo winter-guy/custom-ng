@@ -23,7 +23,7 @@ $typeahead-radius: 6px;
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid $typeahead-border-color;
-    border-radius: $typeahead-radius;
+    border-radius: 0;
     outline: none;
     box-sizing: border-box;
 
@@ -40,7 +40,7 @@ $typeahead-radius: 6px;
     box-sizing: border-box;
     background: white;
     border: 1px solid $typeahead-border-color;
-    border-top: none;
+    border-top: 0;
     border-radius: 0 0 $typeahead-radius $typeahead-radius;
     max-height: 200px;
     overflow-y: auto;

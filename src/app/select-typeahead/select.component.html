@@ -1,7 +1,8 @@
 <div class="typeahead-container">
     <div class="input-wrapper">
-        <input type="text" class="typeahead-input" [formControl]="formControl" (focus)="onFocus()" (blur)="onBlur()"
-            (keydown)="onKeydown($event)" autocomplete="off" placeholder="Search..." #inputRef />
+        <input #inputRef class="typeahead-input" [formControl]="formControl" (focus)="onFocus()"
+            (keydown)="onKeydown($event)" (mousedown)="onInputMouseDown()" autocomplete="off" />
+
 
         <ul class="dropdown" *ngIf="showDropdown && filteredOptions.length">
             <li *ngFor="let option of filteredOptions; let i = index" [class.active]="i === highlightedIndex"
