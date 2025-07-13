@@ -82,6 +82,7 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
     private initialValue: T | null = null;
     private optionsInitialized = false;
     private clickedInside = false;
+    private lastEmittedValue: T | null = null;
 
     constructor(private cdr: ChangeDetectorRef) { }
 
@@ -95,15 +96,15 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
             this.highlightedIndex = -1;
 
             const exactMatch = this.options.find(opt =>
-                opt.label.toLowerCase() === (value || '').toLowerCase()
+                opt.label.toLowerCase().trim() === (value || '').toLowerCase().trim()
             );
 
-            if (!exactMatch) {
+            if (!exactMatch && this.selectedOption !== null) {
+                this.selectedOption = null;
                 this.onChange(null);
-                this.valueChange.emit(null);
+                this.emitIfChanged(null);
             }
 
-            // ✅ Suggest the first match only if enabled
             if (this.suggestFirstMatch && this.filteredOptions.length === 1) {
                 const first = this.filteredOptions[0];
                 const typedValue = (value || '').toLowerCase();
@@ -130,10 +131,10 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
 
         if (match) {
             this.onChange(match.value);
-            this.valueChange.emit(match.value);
+            this.emitIfChanged(match.value);
         } else {
             this.onChange(null);
-            this.valueChange.emit(null);
+            this.emitIfChanged(null);
         }
 
         this.cdr.markForCheck();
@@ -167,7 +168,7 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
         this.highlightedIndex = -1;
 
         this.onChange(option.value);
-        this.valueChange.emit(option.value);
+        this.emitIfChanged(option.value);
         this.onTouched();
         this.cdr.markForCheck();
     }
@@ -179,7 +180,7 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
         this.highlightedIndex = -1;
 
         this.onChange(null);
-        this.valueChange.emit(null);
+        this.emitIfChanged(null);
         this.onTouched();
         this.showDropdown = false;
         this.cdr.markForCheck();
@@ -203,7 +204,6 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
 
         if (!clickedInput && !clickedDropdown) {
             this.autoSelectIfMatch();
-
             this.showDropdown = false;
             this.highlightedIndex = -1;
             this.cdr.markForCheck();
@@ -238,7 +238,6 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
                 this.autoMatched.emit(null);
             }
         }
-
     }
 
     onKeydown(event: KeyboardEvent): void {
@@ -289,5 +288,12 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
             block: 'nearest',
             behavior: 'auto'
         });
+    }
+
+    private emitIfChanged(value: T | null): void {
+        if (!this.compareWith(this.lastEmittedValue, value)) {
+            this.lastEmittedValue = value;
+            this.valueChange.emit(value);
+        }
     }
 }
