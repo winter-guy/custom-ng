@@ -55,12 +55,17 @@ export class SelectTypeaheadComponent implements ControlValueAccessor, OnInit {
 
     ngOnInit(): void {
         this.formControl.valueChanges.subscribe(value => {
+            // Only open dropdown if user typed something
+            if (this.inputRef?.nativeElement === document.activeElement) {
+                this.showDropdown = true;
+            }
             this.filterOptions(value || '');
             this.onChange(value);
-            this.showDropdown = true;
             this.highlightedIndex = -1;
+            this.cdr.markForCheck();
         });
     }
+
 
     writeValue(value: string): void {
         this.formControl.setValue(value, { emitEvent: false });
@@ -124,6 +129,11 @@ export class SelectTypeaheadComponent implements ControlValueAccessor, OnInit {
         } else if (event.key === 'Enter' && this.highlightedIndex >= 0) {
             this.selectOption(this.filteredOptions[this.highlightedIndex]);
             event.preventDefault();
+        } else if (event.key === 'Escape') {
+            this.showDropdown = false;
+            this.highlightedIndex = -1;
+            event.preventDefault();
+            this.cdr.markForCheck();
         }
     }
 

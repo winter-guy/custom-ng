@@ -4,7 +4,6 @@ $typeahead-active: #e0e0e0;
 $typeahead-radius: 6px;
 
 .typeahead-container {
-  position: relative;
   width: 100%;
   max-width: 320px;
 
@@ -19,12 +18,14 @@ $typeahead-radius: 6px;
   }
 
   .typeahead-input {
+    display: block;
     width: 100%;
     padding: 0.5rem;
     font-size: 1rem;
     border: 1px solid $typeahead-border-color;
     border-radius: $typeahead-radius;
     outline: none;
+    box-sizing: border-box;
 
     &:focus {
       border-color: darken($typeahead-border-color, 15%);
@@ -35,7 +36,8 @@ $typeahead-radius: 6px;
     position: absolute;
     top: 100%;
     left: 0;
-    width: 100%; // ✅ Ensures exact match with input
+    width: 100%;
+    box-sizing: border-box;
     background: white;
     border: 1px solid $typeahead-border-color;
     border-top: none;
@@ -44,7 +46,6 @@ $typeahead-radius: 6px;
     overflow-y: auto;
     z-index: 1000;
 
-    // 🔧 Reset browser defaults
     list-style: none;
     margin: 0;
     padding: 0;
