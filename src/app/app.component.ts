@@ -21,6 +21,7 @@ export class AppComponent implements OnInit {
 
   options: SelectOption<User>[] = [
     { label: 'Alice Johnson', value: { id: 1, fullName: 'Alice Johnson' } },
+    { label: 'Alice Johnson', value: { id: 2, fullName: 'Alice Johnson' } },
     { label: 'Bob Smith', value: { id: 2, fullName: 'Bob Smith' } },
     { label: 'Charlie Brown', value: { id: 3, fullName: 'Charlie Brown' } }
   ];

@@ -95,11 +95,11 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
             this.filterOptions(value || '');
             this.highlightedIndex = -1;
 
-            const exactMatch = this.options.find(opt =>
+            const exactMatches = this.options.filter(opt =>
                 opt.label.toLowerCase().trim() === (value || '').toLowerCase().trim()
             );
 
-            if (!exactMatch && this.selectedOption !== null) {
+            if (exactMatches.length !== 1 && this.selectedOption !== null) {
                 this.selectedOption = null;
                 this.onChange(null);
                 this.emitIfChanged(null);
@@ -216,12 +216,12 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
         const inputValue = (this.formControl.value || '').toLowerCase().trim();
         if (!inputValue) return;
 
-        const exactMatch = this.options.find(
+        const exactMatches = this.options.filter(
             opt => opt.label.toLowerCase().trim() === inputValue
         );
 
-        if (exactMatch) {
-            this.selectOption(exactMatch);
+        if (exactMatches.length === 1) {
+            this.selectOption(exactMatches[0]);
             this.autoMatched.emit('exact');
             return;
         }
