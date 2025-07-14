@@ -46,8 +46,7 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
     @ViewChild('inputRef') inputRef!: ElementRef<HTMLInputElement>;
     @ViewChildren('optionRef') optionRefs!: QueryList<ElementRef>;
 
-    @Input() compareWith: (a: T | null, b: T | null) => boolean = (a, b) =>
-        JSON.stringify(a) === JSON.stringify(b);
+    @Input() compareWith: (a: T | null, b: T | null) => boolean = (a, b) => JSON.stringify(a) === JSON.stringify(b);
     @Input() autoSelectOnPartialMatch: boolean = false;
     @Input() suggestFirstMatch: boolean = false;
 
@@ -56,6 +55,7 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
     set options(value: SelectOption<T>[]) {
         this._options = value || [];
         this.optionsInitialized = true;
+        this.checkForDuplicateLabels();
         if (this.initialValue !== null) {
             this.setValueFromOptions(this.initialValue);
         }
@@ -294,6 +294,23 @@ export class SelectTypeaheadComponent<T = any> implements OnInit, ControlValueAc
         if (!this.compareWith(this.lastEmittedValue, value)) {
             this.lastEmittedValue = value;
             this.valueChange.emit(value);
+        }
+    }
+
+    private checkForDuplicateLabels(): void {
+        const seen = new Set<string>();
+        const duplicates = new Set<string>();
+
+        for (const opt of this.options) {
+            const label = opt.label.toLowerCase().trim();
+            if (seen.has(label)) {
+                duplicates.add(label);
+            }
+            seen.add(label);
+        }
+
+        if (duplicates.size > 0) {
+            console.warn('[SelectTypeaheadComponent] Duplicate labels detected:', Array.from(duplicates));
         }
     }
 }
